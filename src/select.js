@@ -10,6 +10,7 @@ class Select extends FabricCanvasTool {
         canvas.isDrawingMode = false;
         canvas.selection = true;
         canvas.forEachObject((o) => {
+            console.log(o)
             o.selectable = o.evented = true;
         });
         const background = canvas.item(0);
