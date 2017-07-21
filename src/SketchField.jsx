@@ -89,6 +89,9 @@ class SketchField extends Component {
         this._onObjectScaling = this._onObjectScaling.bind(this);
         this._onObjectModified = this._onObjectModified.bind(this);
         this._onObjectRotating = this._onObjectRotating.bind(this);
+        this._onObjectSelected = this._onObjectSelected.bind(this);
+        this._onObjectDeselected = this._onObjectDeselected.bind(this);
+
         // pure render
         this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);    
 
@@ -137,6 +140,8 @@ class SketchField extends Component {
         canvas.on('object:moving', this._onObjectMoving);
         canvas.on('object:scaling', this._onObjectScaling);
         canvas.on('object:rotating', this._onObjectRotating);
+        canvas.on('object:selected', this._onObjectSelected);
+        canvas.on('before:selection:cleared', this._onObjectDeselected);
 
         this.disableTouchScroll();
         this._resize();
@@ -247,6 +252,18 @@ class SketchField extends Component {
 
     _onObjectRotating(e) {
 
+    }
+
+    _onObjectSelected(e) {
+        if (this.props.onSelectChange) {
+            this.props.onSelectChange(true);
+        }
+    }
+
+    _onObjectDeselected(e) {
+        if (this.props.onSelectChange) {
+            this.props.onSelectChange(false);
+        }
     }
 
     _onObjectRemoved(e) {
