@@ -50,6 +50,24 @@ class History {
         }
     }
 
+    // splice out the deleted object from the undo array (currently not worrying about redo)
+    delete(obj) {
+        try {
+            if (obj.id === this.current[0].id) {
+                this.undo();
+            } else {
+                this.undoList.forEach((item, i) => {
+                    if (item[0].get('id') === obj.get('id')) {
+                        this.undoList.splice(i, 1);
+                        return;
+                    }
+                });
+            }
+        } finally {
+           //
+        }
+    }
+
     /**
      * Undo the last object, this operation will set the current object to one step back in time
      *

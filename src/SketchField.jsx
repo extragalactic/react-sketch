@@ -87,7 +87,7 @@ class SketchField extends Component {
         this._onObjectMoving = this._onObjectMoving.bind(this);
         this._onObjectRemoved = this._onObjectRemoved.bind(this);
         this._onObjectScaling = this._onObjectScaling.bind(this);
-        this._onObjectModified = this._onObjectModified.bind(this);
+        // this._onObjectModified = this._onObjectModified.bind(this);
         this._onObjectRotating = this._onObjectRotating.bind(this);
         this._onObjectSelected = this._onObjectSelected.bind(this);
         this._onObjectDeselected = this._onObjectDeselected.bind(this);
@@ -96,6 +96,7 @@ class SketchField extends Component {
         this.shouldComponentUpdate = PureRenderMixin.shouldComponentUpdate.bind(this);    
 
         this.baseImage = {};   
+        this.idCounter = 0;
     }
 
     state = {
@@ -131,7 +132,7 @@ class SketchField extends Component {
 
         // Events binding
         canvas.on('object:added', this._onObjectAdded);
-        canvas.on('object:modified', this._onObjectAdded);
+        // canvas.on('object:modified', this._onObjectAdded);
         canvas.on('object:removed', this._onObjectRemoved);
         canvas.on('mouse:down', this._onMouseDown);
         canvas.on('mouse:move', this._onMouseMove);
@@ -227,12 +228,23 @@ class SketchField extends Component {
             return;
         }
         let obj = e.target;
+        obj.id = this.idCounter++;
         obj.version = 1;
         let state = JSON.stringify(obj.originalState);
-        // object, previous state, current state
+
+        // object, previous state, current state        
         this._history.keep([obj, state, state]);
+
     }
 
+    _onObjectRemoved(e) {
+        let history = this._history;
+        let obj = e.target;
+        obj.version = 0;
+        history.delete(obj);
+    }
+
+    /*
     _onObjectModified(e) {
         let obj = e.target;
         obj.version += 1;
@@ -241,7 +253,7 @@ class SketchField extends Component {
         let currState = JSON.stringify(obj.originalState);
         this._history.keep([obj, prevState, currState]);
     }
-
+    */
     _onObjectMoving(e) {
 
     }
@@ -264,11 +276,6 @@ class SketchField extends Component {
         if (this.props.onSelectChange) {
             this.props.onSelectChange(false);
         }
-    }
-
-    _onObjectRemoved(e) {
-        let obj = e.target;
-        obj.version = 0;
     }
 
     _onMouseDown(e) {
@@ -390,7 +397,9 @@ class SketchField extends Component {
     delete() {
         let canvas = this._fc;
         if(canvas.getActiveGroup()){
-            canvas.getActiveGroup().forEachObject(function(o){ canvas.remove(o) });
+            canvas.getActiveGroup().forEachObject(function(o){ 
+                canvas.remove(o);
+            });
             canvas.discardActiveGroup().renderAll();
         } else {
             canvas.remove(canvas.getActiveObject());
@@ -400,30 +409,28 @@ class SketchField extends Component {
     /**
      * Perform an undo operation on canvas, if it cannot undo it will leave the canvas intact
      */
+
     undo() {
         let history = this._history;
         let [obj,prevState,currState] = history.getCurrent();
+        let canvas = this._fc;
+
         history.undo();
-        if (obj.version === 1) {
-            // do a double undo if it's an arrow or itext (not an ideal solution)
-            if(obj.objName==='ArrowHead' || (obj.objName==='iText' && obj.getText().length > 0)) {
-                obj.remove();
-                [obj,prevState,currState] = history.getCurrent();
-                history.undo();
-                obj.remove();
-            } else {
-                obj.remove();
-            }
+
+        if (obj.get('type') === 'group') {
+            obj.forEachObject(function(o){ 
+                canvas.remove(o);
+            });            
+            canvas.remove(obj).renderAll();
         } else {
-            obj.setOptions(JSON.parse(prevState));
-            obj.setCoords();
-            obj.version -= 1;
-            this._fc.renderAll();
+            obj.remove();
         }
+
         if (this.props.onChange) {
             this.props.onChange();
         }
     }
+
 
     /**
      * Perform a redo operation on canvas, if it cannot redo it will leave the canvas intact
@@ -618,6 +625,7 @@ class SketchField extends Component {
             disabled,
             style,
             onChange,
+            onSelectChange,
             width,
             height,
             ...other

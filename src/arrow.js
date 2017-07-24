@@ -25,8 +25,8 @@ class Arrow extends FabricCanvasTool {
             stroke: this._color,
             originX: 'center',
             originY: 'center',
-            selectable: false,
-            evented: false,
+            selectable: true,
+            evented: true,
             objName: 'ArrowLine',
         });
 
@@ -40,13 +40,13 @@ class Arrow extends FabricCanvasTool {
             top: this.line.get('y1') + deltaY,
             originX: 'center',
             originY: 'center',
-            hasBorders: false,
-            hasControls: false,
+            hasBorders: true,
+            hasControls: true,
             lockScalingX: true,
             lockScalingY: true,
             lockRotation: true,
-            selectable: false,
-            evented: false,            
+            selectable: true,
+            evented: true,            
             angle: -45,
             width: this._width * 6,
             height: this._width * 6,
@@ -88,16 +88,17 @@ class Arrow extends FabricCanvasTool {
     }
 
     doMouseUp(o) {
-        /*
-        let canvas = this._canvas;
 
-        this.arrowGroup = new fabric.Group([ this.line, this.arrowhead ]);
-
+        this.arrowGroup = new fabric.Group([ this.line, this.arrowhead ], {
+            selectable: true,
+            evented: true
+        });
+        let canvas = this._canvas;      
+        canvas.add(this.arrowGroup);
+     
         canvas.remove(this.line);
         canvas.remove(this.arrowhead);
-        
-        canvas.add(this.arrowGroup);
-        */
+
         this.isDown = false;
     }
 
